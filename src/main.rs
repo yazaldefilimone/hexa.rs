@@ -1,5 +1,9 @@
+mod ast;
 mod cli;
+mod diagnostics;
 mod repl;
+mod scanner;
+
 use cli::command_line;
 use repl::prompt;
 
