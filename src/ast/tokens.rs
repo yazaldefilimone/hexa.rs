@@ -43,9 +43,11 @@ pub enum TokenEnum {
   Super,  // 'super'
   This,   // 'this'
   True,   // 'true
+
+  EndOfFile, // end of file
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
   pub kind: TokenEnum,
   pub lexeme: String,
