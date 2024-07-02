@@ -4,8 +4,8 @@ use crate::ast::tokens::{Token, TokenEnum};
 use crate::diagnostics::error_handler::ErrorHandler;
 
 pub struct Scanner {
-  tokens: Vec<Token>,
-  error_handler: ErrorHandler,
+  pub tokens: Vec<Token>,
+  pub error_handler: ErrorHandler,
   raw: String,   // the source code
   cursor: usize, // index of the current character
   line: usize,   // current line number
@@ -41,23 +41,23 @@ fn check_keyword(text: &str) -> Option<TokenEnum> {
 
 impl Scanner {
   pub fn new(raw: String) -> Scanner {
-    let keywords = HashMap::from([
-      ("and", TokenEnum::And),
-      ("class", TokenEnum::Class),
-      ("else", TokenEnum::Else),
-      ("false", TokenEnum::False),
-      ("for", TokenEnum::For),
-      ("fun", TokenEnum::Fun),
-      ("if", TokenEnum::If),
-      ("nil", TokenEnum::Nil),
-      ("or", TokenEnum::Or),
-      ("print", TokenEnum::Print),
-      ("return", TokenEnum::Return),
-      ("super", TokenEnum::Super),
-      ("this", TokenEnum::This),
-      ("true", TokenEnum::True),
-    ]);
-    Scanner { tokens: vec![], raw, cursor: 0, line: 1, start: 0, error_handler: ErrorHandler::default(), keywords }
+    // let keywords = HashMap::from([
+    //   ("and", TokenEnum::And),
+    //   ("class", TokenEnum::Class),
+    //   ("else", TokenEnum::Else),
+    //   ("false", TokenEnum::False),
+    //   ("for", TokenEnum::For),
+    //   ("fun", TokenEnum::Fun),
+    //   ("if", TokenEnum::If),
+    //   ("nil", TokenEnum::Nil),
+    //   ("or", TokenEnum::Or),
+    //   ("print", TokenEnum::Print),
+    //   ("return", TokenEnum::Return),
+    //   ("super", TokenEnum::Super),
+    //   ("this", TokenEnum::This),
+    //   ("true", TokenEnum::True),
+    // ]);
+    Scanner { tokens: vec![], raw, cursor: 0, line: 1, start: 0, error_handler: ErrorHandler::default() }
   }
   pub fn scan_tokens(&mut self) {
     while !self.is_at_end() {
