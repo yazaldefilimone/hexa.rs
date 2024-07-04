@@ -16,7 +16,10 @@ impl<'a> Parser<'a> {
     Parser { current_token_pointer: 0, scanner }
   }
 
-  pub fn parse(&mut self) {}
+  pub fn parse(&mut self) -> ast::Expression {
+    println!("parser");
+    self.parse_expression()
+  }
 
   pub fn parse_expression(&mut self) -> ast::Expression {
     return self.parse_equality();
@@ -26,10 +29,10 @@ impl<'a> Parser<'a> {
   pub fn parse_equality(&mut self) -> ast::Expression {
     let mut left_expression = self.parse_comparison();
 
-    while self.is_match(TokenEnum::BangEqual) || self.is_match(TokenEnum::EqualEqual) {
-      let kind_operator = self.get_previous_token().kind.clone().clone();
+    while self.is_match_many(&[TokenEnum::BangEqual, TokenEnum::EqualEqual]) {
+      let kind_operator = self.consume().clone();
       let right_expression = self.parse_comparison();
-      let binary_expression = ast::BinaryExpression::new(kind_operator, left_expression, right_expression);
+      let binary_expression = ast::BinaryExpression::new(Box::new(kind_operator), left_expression, right_expression);
       left_expression = ast::Expression::BinaryExpression(binary_expression);
     }
     return left_expression;
@@ -46,9 +49,9 @@ impl<'a> Parser<'a> {
     ];
 
     while self.is_match_many(matches) {
-      let kind_operator = self.get_previous_token().kind.clone();
+      let token_operator = self.consume().clone();
       let right_expression = self.parse_term();
-      let binary_expression = ast::BinaryExpression::new(kind_operator, left_expression, right_expression);
+      let binary_expression = ast::BinaryExpression::new(Box::new(token_operator), left_expression, right_expression);
       left_expression = ast::Expression::BinaryExpression(binary_expression);
     }
     return left_expression;
@@ -58,9 +61,9 @@ impl<'a> Parser<'a> {
     let mut left_expression = self.parse_factor();
     let matches = &[TokenEnum::Plus, TokenEnum::Minus];
     while self.is_match_many(matches) {
-      let kind_operator = self.get_previous_token().kind.clone();
+      let token_operator = self.consume().clone();
       let right_expression = self.parse_factor();
-      let binary_expression = ast::BinaryExpression::new(kind_operator, left_expression, right_expression);
+      let binary_expression = ast::BinaryExpression::new(Box::new(token_operator), left_expression, right_expression);
       left_expression = ast::Expression::BinaryExpression(binary_expression);
     }
 
@@ -71,9 +74,9 @@ impl<'a> Parser<'a> {
     let mut left_expression = self.parse_unary();
     let matches = &[TokenEnum::Slash, TokenEnum::Star];
     while self.is_match_many(matches) {
-      let kind_operator = self.get_previous_token().kind.clone();
+      let token_operator = self.consume().clone();
       let right_expression = self.parse_unary();
-      let binary_expression = ast::BinaryExpression::new(kind_operator, left_expression, right_expression);
+      let binary_expression = ast::BinaryExpression::new(Box::new(token_operator), left_expression, right_expression);
       left_expression = ast::Expression::BinaryExpression(binary_expression);
     }
 
@@ -87,15 +90,17 @@ impl<'a> Parser<'a> {
   pub fn parse_unary(&mut self) -> ast::Expression {
     if self.is_match(TokenEnum::Bang) {
       self.consume_expected(TokenEnum::Bang, "Expected '!' after expression.");
+      let bang_token = self.consume().clone();
       let right_expression = self.parse_unary();
-      let unary_expression = ast::UnaryExpression::new(TokenEnum::Bang, right_expression);
+      let unary_expression = ast::UnaryExpression::new(Box::new(bang_token), right_expression);
       return ast::Expression::UnaryExpression(unary_expression);
     }
 
     if self.is_match(TokenEnum::Minus) {
       self.consume_expected(TokenEnum::Minus, "Expected '-' after expression.");
       let right_expression = self.parse_unary();
-      let unary_expression = ast::UnaryExpression::new(TokenEnum::Minus, right_expression);
+      let minus_token = self.consume().clone();
+      let unary_expression = ast::UnaryExpression::new(Box::new(minus_token), right_expression);
       return ast::Expression::UnaryExpression(unary_expression);
     }
     return self.parse_primary();
@@ -108,21 +113,25 @@ impl<'a> Parser<'a> {
   pub fn parse_primary(&mut self) -> ast::Expression {
     // boolean's
     if self.is_match(TokenEnum::False) {
+      self.consume();
       let literal = ast::Literal::BooleanLiteral(true);
       return ast::Expression::Literal(literal);
     }
     if self.is_match(TokenEnum::True) {
+      self.consume();
       let literal = ast::Literal::BooleanLiteral(false);
       return ast::Expression::Literal(literal);
     }
 
     if self.is_match(TokenEnum::Nil) {
+      self.consume();
       let literal = ast::Literal::NullLiteral;
       return ast::Expression::Literal(literal);
     }
 
     if self.is_match_many(&vec![TokenEnum::StringLiteral, TokenEnum::NumberLiteral]) {
-      let previous_token = self.get_previous_token();
+      let previous_token = self.consume();
+      println!("{:?}", previous_token);
       if previous_token.kind == TokenEnum::StringLiteral {
         let literal = ast::Literal::StringLiteral(previous_token.literal.clone());
         return ast::Expression::Literal(literal);
@@ -143,7 +152,7 @@ impl<'a> Parser<'a> {
   }
 
   // helper methods
-  fn advance(&mut self) -> &Token {
+  fn consume(&mut self) -> &Token {
     if !self.is_at_end() {
       self.current_token_pointer += 1;
     }
@@ -164,6 +173,9 @@ impl<'a> Parser<'a> {
   }
 
   fn is_at_end(&self) -> bool {
+    if self.scanner.tokens[self.current_token_pointer].kind == TokenEnum::EndOfFile {
+      return true;
+    };
     self.current_token_pointer >= self.scanner.tokens.len()
   }
 
@@ -194,19 +206,19 @@ impl<'a> Parser<'a> {
       self.error(token, message);
       process::exit(ERROR_EXIT_CODE);
     }
-    self.advance();
+    self.consume();
   }
 
   // error handling
   fn error(&mut self, token: Token, message: &str) {
     if token.kind == TokenEnum::EndOfFile {
-      self.scanner.error_handler.report(token.line, " at end", message);
+      self.scanner.error_handler.report(token.line, "at end", message);
       // todo: exit with error code
-      process::exit(ERROR_EXIT_CODE);
+      // process::exit(ERROR_EXIT_CODE);
     }
-    let lexeme_formated = &format!(" at '{}'", token.lexeme);
+    let lexeme_formated = &format!("at '{}'", token.lexeme);
     self.scanner.error_handler.report(token.line, lexeme_formated, message);
     // todo: exit with error code
-    process::exit(ERROR_EXIT_CODE);
+    // process::exit(ERROR_EXIT_CODE);
   }
 }
