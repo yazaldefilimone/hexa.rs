@@ -1,25 +1,21 @@
-use std::process;
-
-use crate::ast::tokens::{Token, TokenEnum};
-use crate::shared::constants::ERROR_EXIT_CODE;
-
 pub struct ErrorHandler {
   pub had_error: bool,
+  pub path_name: String,
 }
 
-impl Default for ErrorHandler {
-  fn default() -> Self {
-    Self::new()
-  }
-}
 impl ErrorHandler {
-  pub fn new() -> ErrorHandler {
-    ErrorHandler { had_error: false }
+  pub fn new(path_name: &str) -> Self {
+    ErrorHandler { had_error: false, path_name: path_name.to_owned() }
   }
 
   pub fn report(&mut self, line: usize, _where: &str, message: &str) {
-    let error = format!("[line {}] Error {}: {}", line, _where, message);
-    println!("{}", error);
+    /*
+    error: Unexpected )
+        at /Users/yazaldefilimone/www/learnspace/lox.rs/test.js:1:25
+    */
+
+    let report_message = format!("error: {}\n\tat {}, line: {}\n", message, self.path_name, line);
+    println!("{}", report_message);
     self.had_error = true;
   }
 
