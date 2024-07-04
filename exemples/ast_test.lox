@@ -1,0 +1,57 @@
+// Test a lox simple expression
+
+
+// unary expression
+print !true;
+
+
+// binary expression
+print 1 + 1;
+print 1 - 1;
+print 1 * 1;
+print 1 / 1;
+
+
+// binary expression
+print 1 + 1 + 1;
+print 1 - 1 - 1;
+
+
+
+// groupping expression
+print (1 + 1);
+print (1 - 1);
+print (1 * 1);
+print (1 / 1);
+
+
+// groupping expression
+print (1 + (1 + 1) + 1);
+print (1 - (1 - 1) - 1);
+print (1 * (1 * 1) * 1);
+print (1 / (1 / 1) / 1);
+
+
+
+// literal
+print "hello world";
+print 123;
+print 123.456;
+print true;
+print false;
+print nil;
+
+
+1 == 2;
+"cat" != "dog";
+
+!true;  // false.
+!false; // true.
+
+
+true and false; // false.
+true and true;  // true.
+
+
+false or false; // false.
+true or false;  // true.
