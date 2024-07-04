@@ -4,12 +4,14 @@ use std::io::Read;
 mod ast;
 mod cli;
 mod diagnostics;
+mod evaluator;
 mod parser;
 mod repl;
 mod scanner;
+mod shared;
+mod values;
 mod visitor;
 
-mod shared;
 use cli::command_line;
 use parser::Parser;
 use repl::prompt;
