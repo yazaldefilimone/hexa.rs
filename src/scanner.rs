@@ -155,7 +155,6 @@ impl Scanner {
   }
 
   pub fn scan_string(&mut self) {
-    self.advance();
     while !self.is_at_end() && self.peek_char() != '"' {
       if self.peek_char() == '\n' {
         self.line += 1;
@@ -179,12 +178,12 @@ impl Scanner {
       current_character = self.peek_char();
     }
     let mut next_character = self.peek_next_char();
-    if self.peek_char() == '.' || self.is_digit(next_character) {
+    if self.peek_char() == '.' && self.is_digit(next_character) {
       self.advance();
-      next_character = self.peek_next_char();
+      next_character = self.peek_char();
       while self.is_digit(next_character) {
         self.advance();
-        next_character = self.peek_next_char();
+        next_character = self.peek_char();
       }
     }
     // if self.is_match('e') || self.is_match('E') {
