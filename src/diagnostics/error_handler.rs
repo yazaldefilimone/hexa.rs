@@ -1,3 +1,5 @@
+use crate::ast::tokens::Token;
+
 pub struct ErrorHandler {
   pub had_error: bool,
   pub path_name: String,
@@ -9,11 +11,6 @@ impl ErrorHandler {
   }
 
   pub fn report(&mut self, line: usize, _where: &str, message: &str) {
-    /*
-    error: Unexpected )
-        at /Users/yazaldefilimone/www/learnspace/lox.rs/test.js:1:25
-    */
-
     let report_message = format!("error: {}\n\tat {}, line: {}\n", message, self.path_name, line);
     println!("{}", report_message);
     self.had_error = true;
@@ -21,5 +18,11 @@ impl ErrorHandler {
 
   pub fn error(&mut self, line: usize, message: &str) {
     self.report(line, "<unknown>", message);
+  }
+
+  pub fn report_rich(&mut self, token: &Token, message: &str) {
+    let report_message = format!("error: {}\n\tat {}, line: {}\n", message, self.path_name, token.line);
+    println!("{}", report_message);
+    self.had_error = true;
   }
 }
