@@ -50,7 +50,7 @@ pub enum TokenEnum {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
   pub kind: TokenEnum,
-  pub lexeme: String,
+  pub lexeme: String, // the source code,
   pub literal: String,
   pub line: usize,
 }
