@@ -17,7 +17,6 @@ impl<'a> Parser<'a> {
   }
 
   pub fn parse(&mut self) -> ast::Expression {
-    println!("parser");
     self.parse_expression()
   }
 
@@ -90,7 +89,7 @@ impl<'a> Parser<'a> {
   pub fn parse_unary(&mut self) -> ast::Expression {
     if self.is_match(TokenEnum::Bang) {
       self.consume_expected(TokenEnum::Bang, "Expected '!' after expression.");
-      let bang_token = self.consume().clone();
+      let bang_token = self.get_previous_token().clone();
       let right_expression = self.parse_unary();
       let unary_expression = ast::UnaryExpression::new(Box::new(bang_token), right_expression);
       return ast::Expression::UnaryExpression(unary_expression);
@@ -131,7 +130,6 @@ impl<'a> Parser<'a> {
 
     if self.is_match_many(&vec![TokenEnum::StringLiteral, TokenEnum::NumberLiteral]) {
       let previous_token = self.consume();
-      println!("{:?}", previous_token);
       if previous_token.kind == TokenEnum::StringLiteral {
         let literal = ast::Literal::StringLiteral(previous_token.literal.clone());
         return ast::Expression::Literal(literal);
