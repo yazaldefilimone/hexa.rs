@@ -11,6 +11,7 @@ mod scanner;
 mod shared;
 mod values;
 mod visitor;
+mod vm;
 
 use cli::command_line;
 use parser::Parser;
