@@ -1,6 +1,19 @@
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 
+use crate::execute;
+use crate::parser::Parser;
+use crate::scanner::Scanner;
+use crate::visitor::print_visitor::PrintVisitor;
+
+fn run_code(raw: &str, scanner: &mut Scanner) -> String {
+  let mut parser = Parser::new(scanner);
+  let ast = parser.parse();
+  let mut visitor = PrintVisitor;
+  let result = ast.accept(&mut visitor);
+  return result;
+}
+
 pub fn prompt() {
   let mut rl = DefaultEditor::new().unwrap();
   let warning_exit = "(To exit, press Ctrl+C again or Ctrl+D or type .exit)";
@@ -18,8 +31,18 @@ pub fn prompt() {
         if exit_commands.contains(&line.trim()) {
           break;
         }
+        let mut scanner = Scanner::new(line.to_string(), "repl");
+        if scanner.error_handler.had_error {
+          scanner.error_handler.had_error = false;
+          continue;
+        }
+        let result = run_code(&line, &mut scanner);
+        println!("Result: {}", result);
+        if scanner.error_handler.had_error {
+          scanner.error_handler.had_error = false;
+          continue;
+        }
         rl.add_history_entry(line.as_str()).unwrap();
-        println!("Result: {}", line);
       }
       Err(ReadlineError::Interrupted) => {
         break;
