@@ -40,7 +40,7 @@ fn check_keyword(text: &str) -> Option<TokenEnum> {
 }
 
 impl Scanner {
-  pub fn new(raw: String) -> Scanner {
+  pub fn new(raw: String, path_name: &str) -> Self {
     // let keywords = HashMap::from([
     //   ("and", TokenEnum::And),
     //   ("class", TokenEnum::Class),
@@ -57,13 +57,16 @@ impl Scanner {
     //   ("this", TokenEnum::This),
     //   ("true", TokenEnum::True),
     // ]);
-    Scanner { tokens: vec![], raw, cursor: 0, line: 1, start: 0, error_handler: ErrorHandler::default() }
+    //
+    let error_handler = ErrorHandler::new(path_name);
+    Scanner { tokens: vec![], raw, cursor: 0, line: 1, start: 0, error_handler }
   }
   pub fn scan_tokens(&mut self) {
     while !self.is_at_end() {
       self.start = self.cursor;
       self.scan_token();
     }
+    self.add_token(TokenEnum::EndOfFile);
   }
 
   pub fn scan_token(&mut self) {
@@ -145,7 +148,8 @@ impl Scanner {
           self.scan_identifier();
           return;
         }
-        self.error_handler.error(self.line, "Unexpected character.")
+        let message = format!("Unexpected character: {}", current_character);
+        self.error_handler.error(self.line, &message);
       }
     }
   }
@@ -169,12 +173,13 @@ impl Scanner {
   }
 
   pub fn scan_number(&mut self) {
-    let current_character = self.peek_char();
+    let mut current_character = self.peek_char();
     while self.is_digit(current_character) {
       self.advance();
+      current_character = self.peek_char();
     }
     let mut next_character = self.peek_next_char();
-    if self.peek_char() == '.' && self.is_digit(next_character) {
+    if self.peek_char() == '.' || self.is_digit(next_character) {
       self.advance();
       next_character = self.peek_next_char();
       while self.is_digit(next_character) {
@@ -204,7 +209,7 @@ impl Scanner {
     self.add_token(kind);
   }
   pub fn advance(&mut self) -> char {
-    let character = self.raw.chars().nth(self.cursor).unwrap();
+    let character = self.peek_char();
     self.cursor += 1;
     character
   }
@@ -260,8 +265,9 @@ impl Scanner {
   }
 
   pub fn is_digit(&mut self, character: char) -> bool {
-    return character >= '0' && character <= '9';
+    return "0123456789".contains(character);
   }
+
   pub fn is_alphabetic(&mut self, character: char) -> bool {
     return character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z' || character == '_';
   }
