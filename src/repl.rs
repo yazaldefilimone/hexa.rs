@@ -1,16 +1,22 @@
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 
-use crate::execute;
+use crate::evaluator::Evaluator;
+// use crate::execute;
 use crate::parser::Parser;
 use crate::scanner::Scanner;
+use crate::values::Value;
 use crate::visitor::print_visitor::PrintVisitor;
+// use crate::visitor::print_visitor::PrintVisitor;
 
-fn run_code(raw: &str, scanner: &mut Scanner) -> String {
+fn run_code(raw: &str, scanner: &mut Scanner) -> Value {
   let mut parser = Parser::new(scanner);
   let ast = parser.parse();
   let mut visitor = PrintVisitor;
-  let result = ast.accept(&mut visitor);
+  let debug = ast.accept(&mut visitor);
+  // println!("debug: {}", debug);
+  let mut evaluator = Evaluator::new("REPL");
+  let result = evaluator.evaluate(&ast);
   return result;
 }
 
